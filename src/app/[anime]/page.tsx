@@ -29,8 +29,7 @@ export default function Anime({
       const fetchData = async () => {
         try {
           const data: AnimeData = await fetchPlayer(animeName);
-          console.log("Fetched data:", data);
-          setIframeUrl(data.StreamLink); // Update iframe URL
+          setIframeUrl(data.StreamLink);
         } catch (error) {
           console.error("Error fetching anime data:", error);
         }

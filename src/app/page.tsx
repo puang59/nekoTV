@@ -64,12 +64,7 @@ export default function Home() {
                     key={index}
                     className="border border-accent rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
                   >
-                    <a
-                      href={anime.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block"
-                    >
+                    <a href={anime.link} className="block">
                       <img
                         src={anime.image}
                         alt={anime.name || `Anime ${index}`}
@@ -95,12 +90,7 @@ export default function Home() {
                     key={index}
                     className="border border-accent rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
                   >
-                    <a
-                      href={anime.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block"
-                    >
+                    <a href={anime.link} className="block">
                       <img
                         src={anime.image}
                         alt={anime.name || `Anime ${index}`}

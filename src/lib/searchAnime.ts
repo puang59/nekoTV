@@ -5,7 +5,7 @@ export async function searchAnime(name: string) {
     revalidatePath(`/api/fetchGogo?search=${name}`);
   }
   return fetch(`/api/fetchGogo?search=${name}`, {
-    cache: "no-cache",
+    cache: "force-cache",
     next: { revalidate: 3600 },
   })
     .then((response) => response.json())

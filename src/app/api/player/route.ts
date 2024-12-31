@@ -40,7 +40,7 @@ export async function GET(request: Request): Promise<Response> {
       const iframe = document.querySelector(".play-video iframe");
       return iframe ? iframe.getAttribute("src") : null;
     });
-    console.log("Iframe URL:", iframeUrl);
+
     return NextResponse.json(
       { animeData: { StreamLink: iframeUrl } },
       { status: 200 }
