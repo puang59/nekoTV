@@ -36,9 +36,7 @@ export default function Anime({
     if (animeName) {
       const fetchData = async () => {
         try {
-          console.log("fetching data");
           const data = await fetchAnimeDataGogo(animeName);
-          console.log("data", data);
           setAnimeData(data);
         } catch (error) {
           console.error("Error fetching anime data:", error);
