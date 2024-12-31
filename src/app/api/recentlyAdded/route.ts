@@ -14,17 +14,13 @@ export async function GET(request: Request) {
     const animeList = await page.$$eval(".anime_list .item", (items) =>
       items.map((item) => {
         const link = item.querySelector("a[href]")?.getAttribute("href");
-        console.log("Link is:", link);
         const image = item.querySelector("a img[src]")?.getAttribute("src");
-        console.log("Image is:", image);
         const name = item
           .querySelector(".anime_detail h3 a[title]")
           ?.getAttribute("title");
-        console.log("Name is:", name);
         const episode = item.querySelector("a.eps")?.textContent?.trim();
-        console.log("Episode is:", episode);
         return {
-          link: link ? `https://4anime.gg${link}` : null,
+          link: link ? link : null,
           image: image || null,
           name: name || null,
           episode: episode || null,
