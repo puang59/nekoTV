@@ -14,6 +14,7 @@ export default function Anime({
 }) {
   const [iframeUrl, setIframeUrl] = useState<string | null>(null);
   const [animeName, setAnimeName] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchParams = async () => {
@@ -27,11 +28,14 @@ export default function Anime({
   useEffect(() => {
     if (animeName) {
       const fetchData = async () => {
+        setLoading(true);
         try {
           const data: AnimeData = await fetchPlayer(animeName);
           setIframeUrl(data.StreamLink);
         } catch (error) {
           console.error("Error fetching anime data:", error);
+        } finally {
+          setLoading(false);
         }
       };
 
@@ -39,10 +43,18 @@ export default function Anime({
     }
   }, [animeName]);
 
-  if (!iframeUrl) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         Loading...
+      </div>
+    );
+  }
+
+  if (!iframeUrl) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        No video available.
       </div>
     );
   }
