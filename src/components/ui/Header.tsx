@@ -14,11 +14,16 @@ const Header: React.FC<HeaderProps> = ({
   handleSearch,
 }) => {
   return (
-    <header className="absolute top-4 right-4 left-0 flex justify-between">
-      <Link href="/" className="text-white font-bold ml-5 text-xl">
-        neko<span className="text-accent">TV</span>{" "}
+    <header className="absolute top-4 right-4 left-0 flex justify-between items-center z-10 px-4">
+      {/* "nekoTV" link is hidden on small screens */}
+      <Link
+        href="/"
+        className="text-white font-bold text-xl hidden sm:inline-block ml-2"
+      >
+        neko<span className="text-accent">TV</span>
       </Link>
-      <div className="flex items-center gap-2 mx-auto">
+      <div className="flex items-center gap-2 w-full sm:w-auto">
+        {/* Input field */}
         <Input
           type="text"
           placeholder="Search Anime"
@@ -29,8 +34,9 @@ const Header: React.FC<HeaderProps> = ({
               handleSearch();
             }
           }}
-          className="text-white w-64 border border-accent rounded-lg px-4 py-2 focus:outline-none focus:ring focus:ring-gray-300"
+          className="text-white flex-1 sm:flex-none w-full sm:w-64 border border-accent rounded-lg px-4 py-2 focus:outline-none focus:ring focus:ring-gray-300"
         />
+        {/* Search button */}
         <Button
           type="button"
           onClick={handleSearch}
