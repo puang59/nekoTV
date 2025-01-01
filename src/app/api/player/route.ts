@@ -1,3 +1,4 @@
+import { redis } from "@/lib/redis";
 import { NextResponse } from "next/server";
 import puppeteer, { Browser, Page } from "puppeteer";
 
@@ -17,10 +18,16 @@ export async function GET(request: Request): Promise<Response> {
     );
   }
 
-  const page: Page = await browser.newPage();
+  const cachedValue = await redis.get(`streamLink:${name}`);
+  if (cachedValue) {
+    return NextResponse.json(
+      { animeData: { StreamLink: cachedValue } },
+      { status: 200 }
+    );
+  }
 
+  const page: Page = await browser.newPage();
   try {
-    // Block unnecessary resources
     await page.setRequestInterception(true);
     page.on("request", (request) => {
       const resourceType = request.resourceType();
@@ -40,6 +47,15 @@ export async function GET(request: Request): Promise<Response> {
       const iframe = document.querySelector(".play-video iframe");
       return iframe ? iframe.getAttribute("src") : null;
     });
+
+    if (!iframeUrl) {
+      return NextResponse.json(
+        { error: "Iframe URL not found." },
+        { status: 404 }
+      );
+    }
+
+    await redis.set(`streamLink:${name}`, iframeUrl, "EX", 60 * 60 * 24);
 
     return NextResponse.json(
       { animeData: { StreamLink: iframeUrl } },
