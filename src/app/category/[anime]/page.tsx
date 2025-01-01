@@ -1,7 +1,7 @@
 "use client";
 
+import { fetchAnimeDataGogo } from "@/lib/fetchDetails";
 import { useEffect, useState } from "react";
-import { fetchAnimeDataGogo } from "@/lib/fetchAnimeData";
 
 interface AnimeData {
   Name: string | null;

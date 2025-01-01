@@ -1,3 +1,4 @@
+import { redis } from "@/lib/redis";
 import { NextResponse } from "next/server";
 import puppeteer, { Browser } from "puppeteer";
 
@@ -8,6 +9,15 @@ const browser: Browser = await puppeteer.launch({
 
 export async function GET(request: Request) {
   const page = await browser.newPage();
+
+  const cachedValue = await redis.get("recentlyAdded");
+  if (cachedValue) {
+    return NextResponse.json(
+      { animeList: JSON.parse(cachedValue) },
+      { status: 200 }
+    );
+  }
+
   try {
     await page.goto("https://ww19.gogoanimes.fi/");
     const animeList = await page.$$eval(".last_episodes li", (items) =>
@@ -19,6 +29,7 @@ export async function GET(request: Request) {
         }
         const name = item.querySelector(".name")?.textContent?.trim();
         const episode = item.querySelector(".episode")?.textContent?.trim();
+
         return {
           link: link ? link : null,
           image: image || null,
@@ -26,6 +37,13 @@ export async function GET(request: Request) {
           episode: episode || null,
         };
       })
+    );
+
+    await redis.set(
+      "recentlyAdded",
+      JSON.stringify(animeList),
+      "EX",
+      60 * 60 * 24
     );
 
     return NextResponse.json({ animeList }, { status: 200 });

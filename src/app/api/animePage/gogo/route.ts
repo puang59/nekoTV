@@ -1,3 +1,4 @@
+import { redis } from "@/lib/redis";
 import { NextResponse } from "next/server";
 import puppeteer, { Browser, Page } from "puppeteer";
 
@@ -28,6 +29,14 @@ export async function GET(request: Request): Promise<Response> {
     return NextResponse.json(
       { error: "Missing 'name' query parameter." },
       { status: 400 }
+    );
+  }
+
+  const cachedValue = await redis.get(`anime:${name}`);
+  if (cachedValue) {
+    return NextResponse.json(
+      { animeData: JSON.parse(cachedValue) },
+      { status: 200 }
     );
   }
 
@@ -99,6 +108,14 @@ export async function GET(request: Request): Promise<Response> {
 
       return result as AnimeData;
     });
+
+    await redis.set(
+      `anime:${name}`,
+      JSON.stringify(animeData),
+      "EX",
+      60 * 60 * 24
+    );
+
     return NextResponse.json({ animeData }, { status: 200 });
   } catch (error) {
     console.error(error);

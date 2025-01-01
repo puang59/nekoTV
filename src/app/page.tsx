@@ -1,14 +1,13 @@
 "use client";
 import Header from "@/components/ui/Header";
-import { fetchRecentlyAdded } from "@/lib/fetchRecentlyAdded";
-import { searchAnime } from "@/lib/searchAnime";
+import { fetchRecentlyAdded, searchAnime } from "@/lib/fetchDetails";
 import { useState, useEffect } from "react";
 
 interface AnimeItem {
   link: string;
   image: string | null;
   name: string | null;
-  released: string | null;
+  episode: string | null;
 }
 
 export default function Home() {
@@ -74,7 +73,7 @@ export default function Home() {
                         <h3 className="text-lg font-semibold text-accent mb-2">
                           {anime.name}
                         </h3>
-                        <p className="text-sm text-accent2">{anime.released}</p>
+                        <p className="text-sm text-accent2">{anime.episode}</p>
                       </div>
                     </a>
                   </div>
@@ -100,7 +99,7 @@ export default function Home() {
                         <h3 className="text-lg font-semibold text-accent mb-2">
                           {anime.name}
                         </h3>
-                        {/* <p className="text-sm text-accent2">{anime.released}</p> */}
+                        <p className="text-sm text-accent2">{anime.episode}</p>
                       </div>
                     </a>
                   </div>

@@ -1,7 +1,7 @@
 "use client";
 
+import { fetchPlayer } from "@/lib/fetchDetails";
 import { useEffect, useState } from "react";
-import { fetchPlayer } from "@/lib/fetchAnimeData";
 
 interface AnimeData {
   StreamLink: string | null;

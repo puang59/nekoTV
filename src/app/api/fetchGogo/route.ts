@@ -1,3 +1,4 @@
+import { redis } from "@/lib/redis";
 import { NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 
@@ -7,9 +8,9 @@ const browser = await puppeteer.launch({
   headless: true,
 });
 
-const page = await browser.newPage();
-
 export async function GET(request: Request) {
+  const page = await browser.newPage();
+
   const { searchParams } = new URL(request.url);
   const search = searchParams.get("search");
 
@@ -17,6 +18,14 @@ export async function GET(request: Request) {
     return NextResponse.json(
       { error: "Missing 'search' query parameter." },
       { status: 400 }
+    );
+  }
+
+  const cachedValue = await redis.get(`search:${search}`);
+  if (cachedValue) {
+    return NextResponse.json(
+      { animeList: JSON.parse(cachedValue) },
+      { status: 200 }
     );
   }
 
@@ -44,6 +53,14 @@ export async function GET(request: Request) {
         };
       })
     );
+
+    await redis.set(
+      `search:${search}`,
+      JSON.stringify(animeList),
+      "EX",
+      60 * 60 * 24
+    );
+
     return NextResponse.json({ animeList }, { status: 200 });
   } catch (error) {
     console.error(error);
