@@ -8,7 +8,7 @@ interface AnimeItem {
   link: string;
   image: string | null;
   name: string | null;
-  episode: string | null;
+  released: string | null;
 }
 
 export default function Search({
@@ -23,7 +23,6 @@ export default function Search({
 
   const router = useRouter();
 
-  // Fetch anime list based on the slug
   useEffect(() => {
     setLoading(true);
     const fetchAnime = async () => {
@@ -71,25 +70,27 @@ export default function Search({
         {!loading && !initialLoad && animeList.length === 0 ? (
           <h1 className="text-accent text-2xl">No anime found</h1>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+          <div className="sm:px-0 md:px-4 lg:px-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 md:gap-6 gap-4">
             {animeList.map(
               (anime, index) =>
                 anime.image && (
                   <div
                     key={index}
-                    className="border border-accent rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
+                    className="rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
                   >
                     <a href={anime.link} className="block">
                       <img
                         src={anime.image}
                         alt={anime.name || `Anime ${index}`}
-                        className="w-full h-80 object-cover"
+                        className="w-full h-40 sm:h-56 md:h-80 object-cover"
                       />
                       <div className="p-4 text-center">
-                        <h3 className="text-lg font-semibold text-accent mb-2">
+                        <h3 className="text-sm sm:text-base md:text-lg font-semibold text-accent mb-2">
                           {anime.name}
                         </h3>
-                        <p className="text-sm text-accent2">{anime.episode}</p>
+                        <p className="text-xs sm:text-sm md:text-sm text-zinc-500">
+                          {anime.released}
+                        </p>
                       </div>
                     </a>
                   </div>

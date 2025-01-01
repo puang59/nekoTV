@@ -61,7 +61,7 @@ export default function Home() {
                 Recently Added
               </h1>
             )}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 md:gap-6 gap-4">
+            <div className="sm:px-0 md:px-4 lg:px-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 md:gap-6 gap-4">
               {recentlyAdded.map(
                 (anime, index) =>
                   anime.image && (
@@ -73,17 +73,13 @@ export default function Home() {
                         <img
                           src={anime.image}
                           alt={anime.name || `Anime ${index}`}
-                          className="w-full h-40 sm:h-56 md:h-80 object-cover" // Adjust image height for mobile
+                          className="w-full h-40 sm:h-56 md:h-80 object-cover"
                         />
                         <div className="p-4 text-center">
                           <h3 className="text-sm sm:text-base md:text-lg font-semibold text-accent mb-2">
-                            {" "}
-                            {/* Adjust text size */}
                             {anime.name}
                           </h3>
                           <p className="text-xs sm:text-sm md:text-sm text-zinc-500">
-                            {" "}
-                            {/* Adjust text size */}
                             {anime.episode}
                           </p>
                         </div>

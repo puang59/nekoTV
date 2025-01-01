@@ -1,5 +1,5 @@
 "use client";
-
+import { Banner } from "@/components/ui/Banner";
 import { fetchAnimeDataGogo } from "@/lib/fetchDetails";
 import { useEffect, useState } from "react";
 
@@ -28,7 +28,6 @@ export default function Anime({
       const resolvedParams = await params;
       setAnimeName(resolvedParams.anime);
     };
-
     fetchParams();
   }, [params]);
 
@@ -42,7 +41,6 @@ export default function Anime({
           console.error("Error fetching anime data:", error);
         }
       };
-
       fetchData();
     }
   }, [animeName]);
@@ -56,63 +54,85 @@ export default function Anime({
   }
 
   return (
-    <div className="bg-background text-accent p-6">
-      {animeData && (
-        <div className="text-gray-300">
-          <img
-            src={animeData.Poster || ""}
-            alt={`${animeData.Name} Poster`}
-            className="w-full max-w-sm mx-auto mb-6"
-          />
-          <h1 className="text-2xl font-bold mb-4">{animeData.Name}</h1>
-          <ul className="font-bold list-none p-0 text-sm">
-            <li className="py-2">
-              <span className="text-gray-400 text-xs">Type</span> <br />
-              {animeData.Type}
-            </li>
-            <li className="py-2">
-              <span className="text-gray-400 text-xs">Genres</span> <br />
-              {animeData.Genres?.split(",").join(", ")}
-            </li>
-            <li className="py-2">
-              <span className="text-gray-400 text-xs">Status</span> <br />
-              {animeData.Status}
-            </li>
-            <li className="py-2">
-              <span className="text-gray-400 text-xs">Released</span> <br />
-              {animeData.Released}
-            </li>
-            <li className="py-2">
-              <span className="text-gray-400 text-xs">Alternative Name</span>{" "}
-              <br />
-              {animeData.AlternativeName}
-            </li>
-          </ul>
-          <p className="mt-4 text-gray-300">
-            <span className="text-gray-400 text-xs block mb-1">
-              Description
-            </span>
-            {animeData.Description}
-          </p>
-          <ul className="mt-10 grid grid-cols-7 gap-4 text-center text-white">
-            {animeData.Episodes?.split(",")
-              .reverse()
-              .map(
-                (episode, index) =>
-                  episode !== "#" && (
-                    <li
-                      key={index}
-                      className="bg-zinc-800 py-2 px-4 rounded-md hover:bg-gray-700"
-                    >
-                      <a href={episode} className="font-semibold">
-                        EP {index + 1}
-                      </a>
+    <div className="relative min-h-screen pt-4 px-4">
+      <div className="relative">
+        {animeData && (
+          <div className="opacity-80">
+            <Banner />
+          </div>
+        )}
+        <div className="absolute inset-x-0 top-[300px] px-6">
+          {animeData && (
+            <div className="text-gray-300">
+              <div className="flex flex-row items-start gap-4 md:gap-10">
+                <img
+                  src={animeData.Poster || ""}
+                  alt={`${animeData.Name} Poster`}
+                  className="w-56 h-80 rounded-lg"
+                />
+                <div>
+                  <h1 className="text-2xl font-bold mb-4 text-white">
+                    {animeData.Name}
+                  </h1>
+                  <ul className="font-bold list-none p-0 text-sm">
+                    <li className="py-1">
+                      <span className="text-gray-400 text-xs">Type</span> <br />
+                      {animeData.Type}
                     </li>
-                  )
-              )}
-          </ul>
+                    <li className="py-1">
+                      <span className="text-gray-400 text-xs">Genres</span>{" "}
+                      <br />
+                      {animeData.Genres?.split(",").join(", ")}
+                    </li>
+                    <li className="py-1">
+                      <span className="text-gray-400 text-xs">Status</span>{" "}
+                      <br />
+                      {animeData.Status}
+                    </li>
+                    <li className="py-1">
+                      <span className="text-gray-400 text-xs">Released</span>{" "}
+                      <br />
+                      {animeData.Released}
+                    </li>
+                    <li className="py-1">
+                      <span className="text-gray-400 text-xs">
+                        Alternative Name
+                      </span>{" "}
+                      <br />
+                      {animeData.AlternativeName}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <p className="mt-4 text-gray-300">
+                <span className="text-gray-400 text-xs block mb-1">
+                  Description
+                </span>
+                {animeData.Description}
+              </p>
+            </div>
+          )}
+          <div className="my-10">
+            <ul className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-4 text-center text-white">
+              {animeData.Episodes?.split(",")
+                .reverse()
+                .map(
+                  (episode, index) =>
+                    episode !== "#" && (
+                      <li
+                        key={index}
+                        className="bg-zinc-800 py-2 px-4 rounded-md hover:bg-gray-700 transition-colors"
+                      >
+                        <a href={episode} className="font-semibold">
+                          EP {index + 1}
+                        </a>
+                      </li>
+                    )
+                )}
+            </ul>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
