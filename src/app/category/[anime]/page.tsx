@@ -119,11 +119,11 @@ export default function Anime({
                 .map(
                   (episode, index) =>
                     episode !== "#" && (
-                      <li
-                        key={index}
-                        className="bg-zinc-800 py-2 px-4 rounded-md hover:bg-gray-700 transition-colors"
-                      >
-                        <a href={episode} className="font-semibold">
+                      <li key={index}>
+                        <a
+                          href={episode}
+                          className="bg-zinc-800 py-2 px-4 rounded-md hover:bg-zinc-700 transition-colors font-semibold block text-center"
+                        >
                           EP {index + 1}
                         </a>
                       </li>
