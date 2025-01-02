@@ -14,15 +14,26 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "NekoTV",
-  description: "Watch anime for free!",
+  description: "Where anime streams, not ads!",
+  openGraph: {
+    title: "NekoTV",
+    description: "Where anime streams, not ads!",
+    images: [
+      {
+        url: "/banner.png",
+        width: 1200,
+        height: 630,
+        alt: "Banner Image",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "NekoTV",
+    description: "Where anime streams, not ads!",
+    images: ["/banner.png"],
+  },
 };
-
-interface AnimeItem {
-  link: string;
-  image: string | null;
-  name: string | null;
-  released: string | null;
-}
 
 export default function RootLayout({
   children,
