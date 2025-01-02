@@ -1,7 +1,9 @@
 "use client";
 
 import { Banner } from "@/components/ui/Banner";
+import Header from "@/components/ui/Header";
 import { fetchPlayer, fetchStreamList } from "@/lib/fetchDetails";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface AnimeData {
@@ -13,8 +15,10 @@ export default function Anime({
 }: {
   params: Promise<{ anime: string }>;
 }) {
+  const router = useRouter();
   const [iframeUrl, setIframeUrl] = useState<string | null>(null);
   const [animeName, setAnimeName] = useState<string | null>(null);
+  const [searchName, setSearchName] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [streamList, setStreamList] = useState<{ Episode: string }[] | null>(
     null
@@ -78,13 +82,30 @@ export default function Anime({
     );
   }
 
+  const handleSearch = async () => {
+    setLoading(true);
+    try {
+      const formattedAnimeName = searchName?.replace(/\s+/g, "-");
+      router.push(`/search/${formattedAnimeName}`);
+    } catch (error) {
+      console.error("Error fetching anime:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-background">
-      <div className="relative">
+      <Header
+        animeName={searchName || ""}
+        setAnimeName={setSearchName}
+        handleSearch={handleSearch}
+      />
+      <div className="relative pt-20 px-4">
         <div className="opacity-20">
           <Banner />
         </div>
-        <div className="absolute inset-x-0 top-12 px-4 md:px-8 lg:px-12">
+        <div className="absolute inset-x-0 top-32 px-4 md:px-8 lg:px-12">
           <h1 className="text-2xl mb-2 text-white font-bold max-w-[1200px] mx-auto">
             {formattedAnimeName}
           </h1>

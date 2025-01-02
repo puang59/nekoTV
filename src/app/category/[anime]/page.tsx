@@ -1,6 +1,8 @@
 "use client";
 import { Banner } from "@/components/ui/Banner";
+import Header from "@/components/ui/Header";
 import { fetchAnimeDataGogo } from "@/lib/fetchDetails";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface AnimeData {
@@ -20,8 +22,11 @@ export default function Anime({
 }: {
   params: Promise<{ anime: string }>;
 }) {
+  const router = useRouter();
   const [animeData, setAnimeData] = useState<AnimeData | null>(null);
   const [animeName, setAnimeName] = useState<string | null>(null);
+  const [searchName, setSearchName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchParams = async () => {
@@ -53,15 +58,32 @@ export default function Anime({
     );
   }
 
+  const handleSearch = async () => {
+    setLoading(true);
+    try {
+      const formattedAnimeName = searchName?.replace(/\s+/g, "-");
+      router.push(`/search/${formattedAnimeName}`);
+    } catch (error) {
+      console.error("Error fetching anime:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="relative min-h-screen pt-4 px-4">
-      <div className="relative">
+    <div className="relative min-h-screen">
+      <Header
+        animeName={searchName || ""}
+        setAnimeName={setSearchName}
+        handleSearch={handleSearch}
+      />
+      <div className="relative pt-20 px-4">
         {animeData && (
           <div className="opacity-80">
             <Banner />
           </div>
         )}
-        <div className="absolute inset-x-0 top-[300px] px-6">
+        <div className="absolute inset-x-0 top-[400px] px-6 lg:px-20">
           {animeData && (
             <div className="text-gray-300">
               <div className="flex flex-row items-start gap-4 md:gap-10">
@@ -112,25 +134,27 @@ export default function Anime({
               </p>
             </div>
           )}
-          <div className="my-10">
-            <ul className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-4 text-center text-white">
-              {animeData.Episodes?.split(",")
-                .reverse()
-                .map(
-                  (episode, index) =>
-                    episode !== "#" && (
-                      <li key={index}>
-                        <a
-                          href={episode}
-                          className="bg-zinc-800 py-2 px-4 rounded-md hover:bg-zinc-700 transition-colors font-semibold block text-center"
-                        >
-                          EP {index + 1}
-                        </a>
-                      </li>
-                    )
-                )}
-            </ul>
-          </div>
+          {animeData.Episodes && (
+            <div className="my-10">
+              <ul className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-4 text-center text-white">
+                {animeData.Episodes.split(",")
+                  .reverse()
+                  .map(
+                    (episode, index) =>
+                      episode !== "#" && (
+                        <li key={index}>
+                          <a
+                            href={episode}
+                            className="bg-zinc-800 py-2 px-4 rounded-md hover:bg-zinc-700 transition-colors font-semibold block text-center"
+                          >
+                            EP {index + 1}
+                          </a>
+                        </li>
+                      )
+                  )}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </div>

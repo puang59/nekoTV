@@ -1,7 +1,7 @@
 "use client";
 import { Banner } from "@/components/ui/Banner";
 import Header from "@/components/ui/Header";
-import { fetchRecentlyAdded } from "@/lib/fetchDetails";
+import { fetchMovies, fetchRecentlyAdded } from "@/lib/fetchDetails";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -9,7 +9,8 @@ interface AnimeItem {
   link: string;
   image: string | null;
   name: string | null;
-  episode: string | null;
+  episode?: string | null;
+  released?: string | null;
 }
 
 export default function Home() {
@@ -17,11 +18,13 @@ export default function Home() {
 
   const [animeName, setAnimeName] = useState("");
   const [recentlyAdded, setRecentlyAdded] = useState<AnimeItem[]>([]);
+  const [movies, setMovies] = useState<AnimeItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     try {
       fetchRecentlyAdded().then((data) => setRecentlyAdded(data));
+      fetchMovies().then((data) => setMovies(data));
     } catch (error) {
       console.error("Error fetching recently added anime:", error);
     } finally {
@@ -81,6 +84,40 @@ export default function Home() {
                           </h3>
                           <p className="text-xs sm:text-sm md:text-sm text-zinc-500">
                             {anime.episode}
+                          </p>
+                        </div>
+                      </a>
+                    </div>
+                  )
+              )}
+            </div>
+
+            {movies.length > 0 && (
+              <h1 className="text-white font-bold mb-5 text-2xl mt-10">
+                Movies
+              </h1>
+            )}
+
+            <div className="sm:px-0 md:px-4 lg:px-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 md:gap-6 gap-4">
+              {movies.map(
+                (anime, index) =>
+                  anime.image && (
+                    <div
+                      key={index}
+                      className="rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
+                    >
+                      <a href={anime.link} className="block">
+                        <img
+                          src={anime.image}
+                          alt={anime.name || `Anime ${index}`}
+                          className="w-full h-40 sm:h-56 md:h-80 object-cover"
+                        />
+                        <div className="p-4 text-center">
+                          <h3 className="text-sm sm:text-base md:text-lg font-semibold text-accent mb-2">
+                            {anime.name}
+                          </h3>
+                          <p className="text-xs sm:text-sm md:text-sm text-zinc-500">
+                            {anime.released}
                           </p>
                         </div>
                       </a>

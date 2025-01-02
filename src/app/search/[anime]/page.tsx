@@ -33,9 +33,10 @@ export default function Search({
         setAnimeList(data);
       } catch (error) {
         console.error("Error fetching anime:", error);
+        setAnimeList([]);
       } finally {
         setLoading(false);
-        setInitialLoad(false); // Indicate the initial fetch is complete
+        setInitialLoad(false);
       }
     };
 
