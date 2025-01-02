@@ -2,9 +2,7 @@ import { redis } from "@/lib/redis";
 import { NextResponse } from "next/server";
 import puppeteer, { Browser, Page } from "puppeteer";
 
-// Search for anime on Gogoanime
-
-const browser = await puppeteer.launch({
+const browser: Browser = await puppeteer.launch({
   headless: true,
   args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
 });
@@ -28,40 +26,26 @@ export async function GET(request: Request) {
     });
   }
 
-  const { searchParams } = new URL(request.url);
-  const search = searchParams.get("search");
-
-  if (!search) {
-    return NextResponse.json(
-      { error: "Missing 'search' query parameter." },
-      { status: 400 }
-    );
-  }
-
-  const cachedValue = await redis.get(`search:${search}`);
+  const cachedValue = await redis.get("movies");
   if (cachedValue) {
     return NextResponse.json(
-      { animeList: JSON.parse(cachedValue) },
+      { movieList: JSON.parse(cachedValue) },
       { status: 200 }
     );
   }
 
   try {
-    const animeName = encodeURIComponent(search);
-    await page.goto(
-      `https://ww19.gogoanimes.fi/search.html?keyword=${animeName}`
-    );
-
-    const animeList = await page.$$eval(".items li", (items) =>
+    await page.goto("https://ww19.gogoanimes.fi/anime-movies.html");
+    const animeList = await page.$$eval(".last_episodes li", (items) =>
       items.map((item) => {
         const link = item.querySelector("a[href]")?.getAttribute("href");
         let image = item.querySelector("a img[src]")?.getAttribute("src");
         if (image?.split("/")[1] === "cover") {
           image = "https://ww19.gogoanimes.fi" + image;
         }
-
-        const name = item.querySelector("a[title]")?.getAttribute("title");
+        const name = item.querySelector(".name")?.textContent?.trim();
         const released = item.querySelector(".released")?.textContent?.trim();
+
         return {
           link: link ? link : null,
           image: image || null,
@@ -71,13 +55,7 @@ export async function GET(request: Request) {
       })
     );
 
-    await redis.set(
-      `search:${search}`,
-      JSON.stringify(animeList),
-      "EX",
-      60 * 60 * 24
-    );
-
+    await redis.set("movies", JSON.stringify(animeList), "EX", 60 * 60 * 24);
     return NextResponse.json({ animeList }, { status: 200 });
   } catch (error) {
     console.error(error);

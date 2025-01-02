@@ -18,10 +18,28 @@ interface AnimeData {
 
 const browser: Browser = await puppeteer.launch({
   headless: true,
+  args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
 });
-const page: Page = await browser.newPage();
+
+let page: Page | null = null;
 
 export async function GET(request: Request): Promise<Response> {
+  if (!page) {
+    page = await browser.newPage();
+    await page.setRequestInterception(true);
+    page.on("request", (req) => {
+      if (
+        req.resourceType() === "image" ||
+        req.resourceType() === "stylesheet" ||
+        req.resourceType() === "font"
+      ) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+  }
+
   const { searchParams } = new URL(request.url);
   const name = searchParams.get("name");
 
@@ -62,9 +80,18 @@ export async function GET(request: Request): Promise<Response> {
         .join(", ");
       result.Genres = genres || null;
 
-      const description = document
-        .querySelector(".description p")
-        ?.textContent?.trim();
+      let descriptionElement = document.querySelector(".description p");
+      let description = descriptionElement
+        ? descriptionElement.textContent?.trim()
+        : null;
+
+      if (!description || description.length === 0) {
+        let fallbackElement = document.querySelector(".description");
+        description = fallbackElement
+          ? fallbackElement.textContent?.trim()
+          : null;
+      }
+
       result.Description = description || null;
 
       let poster = document

@@ -4,7 +4,7 @@ import puppeteer, { Browser, Page } from "puppeteer";
 
 const browser: Browser = await puppeteer.launch({
   headless: true,
-  args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
 });
 
 export async function GET(request: Request): Promise<Response> {
