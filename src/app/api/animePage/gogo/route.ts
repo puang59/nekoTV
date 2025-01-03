@@ -1,9 +1,16 @@
 import { redis } from "@/lib/redis";
-import { NextResponse } from "next/server";
-import puppeteer, { Browser, Page } from "puppeteer";
+import { NextResponse, type NextRequest } from "next/server";
+import puppeteer, {
+  type Browser as PuppeteerBrowser,
+  type Page as PuppeteerPage,
+} from "puppeteer";
+import puppeteerCore, {
+  type Browser as PuppeteerCoreBrowser,
+  type Page as PuppeteerCorePage,
+} from "puppeteer-core";
+import chromium from "@sparticuz/chromium-min";
 
-// Get anime data from Gogoanime
-
+// Anime data interface
 interface AnimeData {
   Name: string | null;
   Genres: string | null;
@@ -16,83 +23,113 @@ interface AnimeData {
   Episodes: string | null;
 }
 
-const browser: Browser = await puppeteer.launch({
-  headless: true,
-  args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-});
+type Browser = PuppeteerBrowser | PuppeteerCoreBrowser;
+type Page = PuppeteerPage | PuppeteerCorePage;
 
-let page: Page | null = null;
+export const dynamic = "force-dynamic";
 
-export async function GET(request: Request): Promise<Response> {
-  if (!page) {
-    page = await browser.newPage();
-    await page.setRequestInterception(true);
-    page.on("request", (req) => {
-      if (
-        req.resourceType() === "image" ||
-        req.resourceType() === "stylesheet" ||
-        req.resourceType() === "font"
-      ) {
-        req.abort();
-      } else {
-        req.continue();
-      }
+async function createBrowser(): Promise<Browser> {
+  if (
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL_ENV === "production"
+  ) {
+    const executablePath = await chromium.executablePath(
+      "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar"
+    );
+    return puppeteerCore.launch({
+      executablePath,
+      args: chromium.args,
+      headless: chromium.headless,
+      defaultViewport: chromium.defaultViewport,
+    });
+  } else {
+    return puppeteer.launch({
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+      ],
     });
   }
+}
 
-  const { searchParams } = new URL(request.url);
-  const name = searchParams.get("name");
+let browser: Browser | undefined;
+let page: Page | null = null;
 
-  if (!name) {
-    return NextResponse.json(
-      { error: "Missing 'name' query parameter." },
-      { status: 400 }
-    );
-  }
-
-  const cachedValue = await redis.get(`anime:${name}`);
-  if (cachedValue) {
-    return NextResponse.json(
-      { animeData: JSON.parse(cachedValue) },
-      { status: 200 }
-    );
-  }
-
+export async function GET(request: NextRequest): Promise<Response> {
   try {
-    const animeName = encodeURIComponent(name);
+    // Initialize the browser if not already done
+    if (!browser) {
+      browser = await createBrowser();
+    }
 
+    // Initialize the page if not already done
+    if (!page) {
+      const newPage = await browser.newPage();
+      await newPage.setRequestInterception(true);
+      newPage.on("request", (req) => {
+        if (
+          req.resourceType() === "image" ||
+          req.resourceType() === "stylesheet" ||
+          req.resourceType() === "font"
+        ) {
+          req.abort();
+        } else {
+          req.continue();
+        }
+      });
+      page = newPage; // Assign the page explicitly to avoid type mismatches
+    }
+
+    // Parse request parameters
+    const { searchParams } = new URL(request.url);
+    const name = searchParams.get("name");
+
+    if (!name) {
+      return NextResponse.json(
+        { error: "Missing 'name' query parameter." },
+        { status: 400 }
+      );
+    }
+
+    // Check Redis cache
+    const cachedValue = await redis.get(`anime:${name}`);
+    if (cachedValue) {
+      return NextResponse.json(
+        { animeData: JSON.parse(cachedValue) },
+        { status: 200 }
+      );
+    }
+
+    // Navigate to the target page
+    const animeName = encodeURIComponent(name);
     await page.goto(`https://ww19.gogoanimes.fi/category/${animeName}`, {
       timeout: 60000,
     });
 
+    // Wait for the required selector
     await page.waitForSelector(".anime_info_body_bg img");
 
+    // Scrape the anime data
+    // @ts-ignore
     const animeData: AnimeData = await page.evaluate((): AnimeData => {
       const result: Partial<AnimeData> = {};
 
-      const name = document.querySelector("h1")?.textContent?.trim();
-      result.Name = name || null;
+      result.Name = document.querySelector("h1")?.textContent?.trim() || null;
 
-      const genres = Array.from(
-        document.querySelectorAll('.type a[href*="/genre/"]')
-      )
-        .map((item) => item.textContent?.trim())
-        .join(", ");
-      result.Genres = genres || null;
+      result.Genres =
+        Array.from(document.querySelectorAll('.type a[href*="/genre/"]'))
+          .map((item) => item.textContent?.trim())
+          .join(", ") || null;
 
-      let descriptionElement = document.querySelector(".description p");
-      let description = descriptionElement
-        ? descriptionElement.textContent?.trim()
-        : null;
+      const descriptionElement = document.querySelector(".description p");
+      result.Description = descriptionElement?.textContent?.trim() || null;
 
-      if (!description || description.length === 0) {
-        let fallbackElement = document.querySelector(".description");
-        description = fallbackElement
-          ? fallbackElement.textContent?.trim()
-          : null;
+      if (!result.Description || result.Description.length === 0) {
+        const fallbackElement = document.querySelector(".description");
+        result.Description = fallbackElement?.textContent?.trim() || null;
       }
-
-      result.Description = description || null;
 
       let poster = document
         .querySelector(".anime_info_body_bg img")
@@ -102,40 +139,38 @@ export async function GET(request: Request): Promise<Response> {
       }
       result.Poster = poster || null;
 
-      const type = document
-        .querySelector('.type a[href*="/sub-category/"]')
-        ?.textContent?.trim();
-      result.Type = type || null;
+      result.Type =
+        document
+          .querySelector('.type a[href*="/sub-category/"]')
+          ?.textContent?.trim() || null;
 
-      const status = document
-        .querySelector('.type a[href*="/completed-anime"]')
-        ?.textContent?.trim();
-      result.Status = status || null;
+      result.Status =
+        document
+          .querySelector('.type a[href*="/completed-anime"]')
+          ?.textContent?.trim() || null;
 
       const releasedElement = Array.from(
         document.querySelectorAll(".type span")
       ).find((el) => el.textContent?.trim() === "Released:");
-      const released = releasedElement?.parentElement?.textContent
-        ?.replace("Released:", "")
-        ?.trim();
-      result.Released = released || null;
+      result.Released =
+        releasedElement?.parentElement?.textContent
+          ?.replace("Released:", "")
+          ?.trim() || null;
 
-      const altName = document
-        .querySelector(".type.other-name a")
-        ?.textContent?.trim();
-      result.AlternativeName = altName || null;
+      result.AlternativeName =
+        document.querySelector(".type.other-name a")?.textContent?.trim() ||
+        null;
 
-      const eps = Array.from(
-        document.querySelectorAll(".anime_video_body ul li a")
-      )
-        .map((item) => item.getAttribute("href"))
-        .filter((item) => item !== "Download")
-        .join(", ");
-      result.Episodes = eps || null;
+      result.Episodes =
+        Array.from(document.querySelectorAll(".anime_video_body ul li a"))
+          .map((item) => item.getAttribute("href"))
+          .filter((item) => item !== "Download")
+          .join(", ") || null;
 
       return result as AnimeData;
     });
 
+    // Cache the result in Redis
     await redis.set(
       `anime:${name}`,
       JSON.stringify(animeData),
@@ -145,7 +180,7 @@ export async function GET(request: Request): Promise<Response> {
 
     return NextResponse.json({ animeData }, { status: 200 });
   } catch (error) {
-    console.error(error);
+    console.error("Error during scraping:", error);
     return NextResponse.json(
       { error: "An error occurred while processing your request." },
       { status: 500 }
