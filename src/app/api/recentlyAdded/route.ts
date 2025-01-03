@@ -50,6 +50,10 @@ export async function GET(request: NextRequest) {
         items.map((item) => {
           const link = (item.querySelector("a[href]") as HTMLAnchorElement)
             ?.href;
+          let path = "";
+          if (link) {
+            path = new URL(link).pathname;
+          }
           let image = (item.querySelector("a img[src]") as HTMLImageElement)
             ?.src;
           if (image?.split("/")[1] === "cover") {
@@ -63,7 +67,7 @@ export async function GET(request: NextRequest) {
           )?.textContent?.trim();
 
           return {
-            link: link || null,
+            link: path || null,
             image: image || null,
             name: name || null,
             episode: episode || null,

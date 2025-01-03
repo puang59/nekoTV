@@ -63,8 +63,11 @@ export default function Search({
         handleSearch={handleSearch}
       />
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-accent bg-opacity-50">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-accent bg-opacity-50">
           <div className="text-accent2">Loading...</div>
+          <div className="text-zinc-400">
+            If it takes too long, please try reloading
+          </div>
         </div>
       )}
       <main className="pt-20 px-4">

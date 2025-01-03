@@ -50,14 +50,17 @@ export default function Home() {
       />
 
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-accent bg-opacity-50">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-accent bg-opacity-50">
           <div className="text-accent2">Loading...</div>
+          <div className="text-zinc-400">
+            If it takes too long, please try reloading
+          </div>
         </div>
       )}
 
       <main className="relative pt-20 px-4">
         <div className="relative">
-          {recentlyAdded.length > 0 && <Banner />}
+          <Banner />
           <div className="absolute inset-x-0 top-[300px] px-4">
             {recentlyAdded.length > 0 && (
               <h1 className="text-white font-bold mb-5 text-2xl">

@@ -52,8 +52,11 @@ export default function Anime({
 
   if (!animeData) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center min-h-screen">
         Loading...
+        <div className="text-zinc-400">
+          If it takes too long, please try reloading
+        </div>
       </div>
     );
   }
