@@ -23,6 +23,7 @@ export default function Anime({
   const [streamList, setStreamList] = useState<{ Episode: string }[] | null>(
     null
   );
+  const [showLoadingMessage, setShowLoadingMessage] = useState(false);
 
   const formattedAnimeName = animeName
     ?.split("-")
@@ -46,33 +47,44 @@ export default function Anime({
   }, [params]);
 
   useEffect(() => {
-    if (animeName) {
-      const fetchData = async () => {
-        setLoading(true);
-        try {
+    const loadingTimeout = setTimeout(() => {
+      setShowLoadingMessage(true);
+    }, 10000);
+
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        if (animeName) {
           const data: AnimeData = await fetchPlayer(animeName);
           setIframeUrl(data.StreamLink);
           const formattedSearch = animeName.split(/-episode/)[0];
           const streamListData = await fetchStreamList(formattedSearch);
           setStreamList(streamListData.reverse());
-        } catch (error) {
-          console.error("Error fetching anime data:", error);
-        } finally {
-          setLoading(false);
         }
-      };
+      } catch (error) {
+        console.error("Error fetching anime data:", error);
+      } finally {
+        setLoading(false);
+        clearTimeout(loadingTimeout);
+      }
+    };
 
+    if (animeName) {
       fetchData();
     }
+
+    return () => clearTimeout(loadingTimeout);
   }, [animeName]);
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         Loading...
-        <div className="text-zinc-400">
-          If it takes too long, please try reloading
-        </div>
+        {showLoadingMessage && (
+          <div className="text-zinc-400">
+            If it takes too long, please try reloading
+          </div>
+        )}
       </div>
     );
   }

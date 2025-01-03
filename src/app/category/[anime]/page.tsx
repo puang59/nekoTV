@@ -27,6 +27,7 @@ export default function Anime({
   const [animeName, setAnimeName] = useState<string | null>(null);
   const [searchName, setSearchName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showLoadingMessage, setShowLoadingMessage] = useState(false);
 
   useEffect(() => {
     const fetchParams = async () => {
@@ -37,26 +38,41 @@ export default function Anime({
   }, [params]);
 
   useEffect(() => {
-    if (animeName) {
-      const fetchData = async () => {
-        try {
+    const loadingTimeout = setTimeout(() => {
+      setShowLoadingMessage(true);
+    }, 10000); // 10 seconds
+
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        if (animeName) {
           const data = await fetchAnimeDataGogo(animeName);
           setAnimeData(data);
-        } catch (error) {
-          console.error("Error fetching anime data:", error);
         }
-      };
+      } catch (error) {
+        console.error("Error fetching anime data:", error);
+      } finally {
+        setLoading(false);
+        clearTimeout(loadingTimeout);
+      }
+    };
+
+    if (animeName) {
       fetchData();
     }
+
+    return () => clearTimeout(loadingTimeout);
   }, [animeName]);
 
   if (!animeData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         Loading...
-        <div className="text-zinc-400">
-          If it takes too long, please try reloading
-        </div>
+        {showLoadingMessage && (
+          <div className="text-zinc-400">
+            If it takes too long, please try reloading
+          </div>
+        )}
       </div>
     );
   }

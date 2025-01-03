@@ -20,8 +20,13 @@ export default function Home() {
   const [recentlyAdded, setRecentlyAdded] = useState<AnimeItem[]>([]);
   const [movies, setMovies] = useState<AnimeItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showLoadingMessage, setShowLoadingMessage] = useState(false);
 
   useEffect(() => {
+    const loadingTimeout = setTimeout(() => {
+      setShowLoadingMessage(true);
+    }, 10000);
+
     try {
       fetchRecentlyAdded().then((data) => setRecentlyAdded(data));
       fetchMovies().then((data) => setMovies(data));
@@ -29,7 +34,10 @@ export default function Home() {
       console.error("Error fetching recently added anime:", error);
     } finally {
       setLoading(false);
+      clearTimeout(loadingTimeout);
     }
+
+    return () => clearTimeout(loadingTimeout);
   }, []);
 
   const handleSearch = async () => {
@@ -52,9 +60,11 @@ export default function Home() {
       {loading && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-accent bg-opacity-50">
           <div className="text-accent2">Loading...</div>
-          <div className="text-zinc-400">
-            If it takes too long, please try reloading
-          </div>
+          {showLoadingMessage && (
+            <div className="text-zinc-400">
+              If it takes too long, please try reloading
+            </div>
+          )}
         </div>
       )}
 

@@ -20,12 +20,17 @@ export default function Search({
   const [animeList, setAnimeList] = useState<AnimeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [showLoadingMessage, setShowLoadingMessage] = useState(false);
 
   const router = useRouter();
 
   useEffect(() => {
-    setLoading(true);
+    const loadingTimeout = setTimeout(() => {
+      setShowLoadingMessage(true);
+    }, 10000); // 10 seconds
+
     const fetchAnime = async () => {
+      setLoading(true);
       try {
         const resolvedParams = await params;
         setAnimeName(resolvedParams.anime.replace(/-/g, " "));
@@ -36,11 +41,13 @@ export default function Search({
         setAnimeList([]);
       } finally {
         setLoading(false);
-        setInitialLoad(false);
+        clearTimeout(loadingTimeout);
       }
     };
 
     fetchAnime();
+
+    return () => clearTimeout(loadingTimeout);
   }, [params]);
 
   const handleSearch = async () => {
@@ -65,9 +72,11 @@ export default function Search({
       {loading && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-accent bg-opacity-50">
           <div className="text-accent2">Loading...</div>
-          <div className="text-zinc-400">
-            If it takes too long, please try reloading
-          </div>
+          {showLoadingMessage && (
+            <div className="text-zinc-400">
+              If it takes too long, please try reloading
+            </div>
+          )}
         </div>
       )}
       <main className="pt-20 px-4">
