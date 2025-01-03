@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.1",
+    "@sparticuz/chromium-min": "^131.0.1",
+    "@vercel/analytics": "^1.4.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "ioredis": "^5.4.2",
@@ -18,7 +20,6 @@
     "next": "15.1.2",
     "puppeteer": "^23.10.4",
     "puppeteer-core": "^23.10.4",
-    "@sparticuz/chromium-min": "^131.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^2.6.0",
