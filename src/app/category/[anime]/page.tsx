@@ -40,7 +40,7 @@ export default function Anime({
   useEffect(() => {
     const loadingTimeout = setTimeout(() => {
       setShowLoadingMessage(true);
-    }, 10000); // 10 seconds
+    }, 20000);
 
     const fetchData = async () => {
       setLoading(true);

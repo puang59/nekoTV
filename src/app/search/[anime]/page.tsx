@@ -27,7 +27,7 @@ export default function Search({
   useEffect(() => {
     const loadingTimeout = setTimeout(() => {
       setShowLoadingMessage(true);
-    }, 10000); // 10 seconds
+    }, 20000);
 
     const fetchAnime = async () => {
       setLoading(true);

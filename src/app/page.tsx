@@ -1,5 +1,6 @@
 "use client";
 import { Banner } from "@/components/ui/Banner";
+import { Footer } from "@/components/ui/Footer";
 import Header from "@/components/ui/Header";
 import { fetchMovies, fetchRecentlyAdded } from "@/lib/fetchDetails";
 import { useRouter } from "next/navigation";
@@ -25,7 +26,7 @@ export default function Home() {
   useEffect(() => {
     const loadingTimeout = setTimeout(() => {
       setShowLoadingMessage(true);
-    }, 10000);
+    }, 20000);
 
     try {
       fetchRecentlyAdded().then((data) => setRecentlyAdded(data));
@@ -138,6 +139,7 @@ export default function Home() {
                   )
               )}
             </div>
+            {recentlyAdded.length > 0 && movies.length > 0 && <Footer />}
           </div>
         </div>
       </main>
