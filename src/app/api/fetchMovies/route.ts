@@ -1,76 +1,14 @@
 import { redis } from "@/lib/redis";
 import { NextResponse, type NextRequest } from "next/server";
-import puppeteer, {
-  type Browser as PuppeteerBrowser,
-  type Page as PuppeteerPage,
-} from "puppeteer";
-import puppeteerCore, {
-  type Browser as PuppeteerCoreBrowser,
-  type Page as PuppeteerCorePage,
-} from "puppeteer-core";
-import chromium from "@sparticuz/chromium-min";
-
-export const dynamic = "force-dynamic";
-
-type Browser = PuppeteerBrowser | PuppeteerCoreBrowser;
-type Page = PuppeteerPage | PuppeteerCorePage;
-
-async function createBrowser(): Promise<Browser> {
-  if (
-    process.env.NODE_ENV === "production" ||
-    process.env.VERCEL_ENV === "production"
-  ) {
-    const executablePath = await chromium.executablePath(
-      "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar"
-    );
-    return puppeteerCore.launch({
-      executablePath,
-      args: chromium.args,
-      headless: chromium.headless,
-      defaultViewport: chromium.defaultViewport,
-    });
-  } else {
-    return puppeteer.launch({
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-      ],
-    });
-  }
-}
-
-let browser: Browser | undefined;
-let page: Page | null = null;
+import { getBrowser } from "@/lib/createBrowser";
 
 export async function GET(request: NextRequest) {
+  const cacheKey = "movies";
+  const scrapeURL = "https://ww19.gogoanimes.fi/anime-movies.html";
+
   try {
-    // Initialize the browser if not already done
-    if (!browser) {
-      browser = await createBrowser();
-    }
-
-    // Initialize the page if not already done
-    if (!page) {
-      const newPage = await browser.newPage();
-      await newPage.setRequestInterception(true);
-      newPage.on("request", (req) => {
-        if (
-          req.resourceType() === "image" ||
-          req.resourceType() === "stylesheet" ||
-          req.resourceType() === "font"
-        ) {
-          req.abort();
-        } else {
-          req.continue();
-        }
-      });
-      page = newPage; // Explicit assignment to avoid type mismatch
-    }
-
-    // Check Redis cache
-    const cachedValue = await redis.get("movies");
+    // Check Redis cache for the movie list
+    const cachedValue = await redis.get(cacheKey);
     if (cachedValue) {
       return NextResponse.json(
         { movieList: JSON.parse(cachedValue) },
@@ -78,48 +16,75 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Ensure page is not null (TypeScript safety)
-    if (!page) {
-      throw new Error("Failed to initialize page.");
+    // Get a browser instance
+    const browser = await getBrowser();
+    const page = await browser.newPage();
+
+    try {
+      // Optimize network requests by blocking unnecessary resources
+      await page.setRequestInterception(true);
+      page.on("request", (req) => {
+        if (["image", "stylesheet", "font"].includes(req.resourceType())) {
+          req.abort();
+        } else {
+          req.continue();
+        }
+      });
+
+      // Navigate to the target URL
+      await page.goto(scrapeURL, {
+        waitUntil: "domcontentloaded",
+        timeout: 30000, // 30 seconds timeout
+      });
+
+      // Scrape anime movies
+      // @ts-ignore
+      const animeList = await page.$$eval(
+        ".last_episodes li",
+        (items: Element[]) =>
+          items.map((item) => {
+            const link =
+              item.querySelector("a[href]")?.getAttribute("href") || null;
+            let path = null;
+
+            if (link) {
+              try {
+                path = new URL(link, "https://ww19.gogoanimes.fi").pathname;
+              } catch (error) {
+                console.warn("Invalid URL found:", link);
+              }
+            }
+
+            let image =
+              item.querySelector("a img[src]")?.getAttribute("src") || null;
+
+            if (image?.startsWith("/cover")) {
+              image = "https://ww19.gogoanimes.fi" + image;
+            }
+
+            const name =
+              item.querySelector(".name")?.textContent?.trim() || null;
+            const released =
+              item.querySelector(".released")?.textContent?.trim() || null;
+
+            return {
+              link: path,
+              image,
+              name,
+              released,
+            };
+          })
+      );
+
+      // Cache the result in Redis for 24 hours
+      await redis.set(cacheKey, JSON.stringify(animeList), "EX", 60 * 60 * 24);
+
+      return NextResponse.json({ animeList }, { status: 200 });
+    } finally {
+      // Always close the page
+      await page.close();
+      await browser.close(); // Ensures no lingering browser processes
     }
-
-    // Scrape the data
-    await page.goto("https://ww19.gogoanimes.fi/anime-movies.html");
-    // @ts-ignore
-    const animeList = await page.$$eval(
-      ".last_episodes li",
-      (items: Element[]) =>
-        items.map((item) => {
-          const link = (item.querySelector("a[href]") as HTMLAnchorElement)
-            ?.href;
-          let path = "";
-          if (link) {
-            path = new URL(link).pathname;
-          }
-          let image = (item.querySelector("a img[src]") as HTMLImageElement)
-            ?.src;
-          if (image?.split("/")[1] === "cover") {
-            image = "https://ww19.gogoanimes.fi" + image;
-          }
-          const name = (
-            item.querySelector(".name") as HTMLElement
-          )?.textContent?.trim();
-          const released = (
-            item.querySelector(".released") as HTMLElement
-          )?.textContent?.trim();
-
-          return {
-            link: path || null,
-            image: image || null,
-            name: name || null,
-            released: released || null,
-          };
-        })
-    );
-
-    // Cache the result in Redis
-    await redis.set("movies", JSON.stringify(animeList), "EX", 60 * 60 * 24);
-    return NextResponse.json({ animeList }, { status: 200 });
   } catch (error) {
     console.error("Error during scraping:", error);
     return NextResponse.json(
