@@ -92,7 +92,9 @@ export default function Anime({
   if (!iframeUrl) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        No video available.
+        No video available
+        <br />
+        <p className="text-zinc-400">Please try reloading</p>
       </div>
     );
   }

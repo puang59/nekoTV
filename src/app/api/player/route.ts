@@ -4,7 +4,7 @@ import { getBrowser } from "@/lib/createBrowser";
 
 const CACHE_DURATION = 60 * 60 * 24;
 const PAGE_TIMEOUT = 10000;
-const MAX_RETRIES = 2;
+const MAX_RETRIES = 3;
 
 export async function GET(request: NextRequest): Promise<Response> {
   const { searchParams } = new URL(request.url);
