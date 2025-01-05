@@ -82,7 +82,7 @@ export default function Search({
       <main className="pt-20 px-4">
         {!loading && !initialLoad && animeList.length === 0 ? (
           <h1 className="text-accent text-2xl">No anime found</h1>
-        ) : (
+        ) : animeList.length > 0 ? (
           <div className="sm:px-0 md:px-4 lg:px-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 md:gap-6 gap-4">
             {animeList.map(
               (anime, index) =>
@@ -110,6 +110,12 @@ export default function Search({
                 )
             )}
           </div>
+        ) : (
+          !loading && (
+            <h1 className="flex items-center justify-center text-accent text-2xl">
+              No anime found
+            </h1>
+          )
         )}
       </main>
     </div>
