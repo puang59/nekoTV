@@ -1,6 +1,7 @@
 "use client";
 import Header from "@/components/ui/Header";
-import { searchAnime } from "@/lib/fetchDetails";
+import { searchAnime, searchAnimeAPI } from "@/lib/fetchDetails";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -35,10 +36,13 @@ export default function Search({
         const resolvedParams = await params;
         setAnimeName(resolvedParams.anime.replace(/-/g, " "));
         const data = await searchAnime(resolvedParams.anime);
+        console.log("animedata", data);
         setAnimeList(data);
+        setInitialLoad(false);
       } catch (error) {
         console.error("Error fetching anime:", error);
         setAnimeList([]);
+        setInitialLoad(false);
       } finally {
         setLoading(false);
         clearTimeout(loadingTimeout);
@@ -71,7 +75,6 @@ export default function Search({
       />
       {loading && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-accent bg-opacity-50">
-          <div className="text-accent2">Loading...</div>
           {showLoadingMessage && (
             <div className="text-zinc-400">
               If it takes too long, please try reloading

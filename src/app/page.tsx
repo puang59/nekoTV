@@ -79,36 +79,41 @@ export default function Home() {
               </h1>
             )}
             <div className="sm:px-0 md:px-4 lg:px-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 md:gap-6 gap-4">
-              {recentlyAdded.map(
-                (anime, index) =>
-                  anime.image && (
-                    <div
-                      key={index}
-                      className="rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
-                    >
-                      <a href={anime.link} className="block">
-                        <img
-                          src={anime.image}
-                          alt={anime.name || `Anime ${index}`}
-                          className="w-full h-40 sm:h-56 md:h-80 object-cover"
-                        />
-                        <div className="p-4 text-center">
-                          <h3 className="text-sm sm:text-base md:text-lg font-semibold text-accent mb-2">
-                            {anime.name}
-                          </h3>
-                          <p className="text-xs sm:text-sm md:text-sm text-zinc-500">
-                            {anime.episode}
-                          </p>
-                        </div>
-                      </a>
+              {recentlyAdded.map((anime, index) => (
+                <div
+                  key={index}
+                  className="rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
+                >
+                  <a href={anime.link} className="block">
+                    {anime.image ? (
+                      <img
+                        src={anime.image}
+                        alt={anime.name || `Anime ${index}`}
+                        className="w-full h-40 sm:h-56 md:h-80 object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-40 sm:h-56 md:h-80 bg-accent2 flex items-center justify-center">
+                        <span className="text-white text-lg">No Image</span>
+                      </div>
+                    )}
+                    <div className="p-4 text-center">
+                      <h3 className="text-sm sm:text-base md:text-lg font-semibold text-accent mb-2">
+                        {anime.name}
+                      </h3>
+                      {anime.episode && (
+                        <p className="text-xs sm:text-sm md:text-sm text-zinc-500">
+                          Episode {anime.episode}
+                        </p>
+                      )}
                     </div>
-                  )
-              )}
+                  </a>
+                </div>
+              ))}
             </div>
 
             {movies.length > 0 && (
               <h1 className="text-white font-bold mb-5 text-2xl mt-10">
-                Movies
+                Top Shows
               </h1>
             )}
 

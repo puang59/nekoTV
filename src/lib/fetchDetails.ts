@@ -30,6 +30,21 @@ export async function searchAnime(name: string) {
     .then((data) => data.animeList || []);
 }
 
+export async function searchAnimeAPI(name: string) {
+  const response = await fetch(
+    `http://localhost:3001/aniwatch/search?keyword=${name}`
+  );
+  const data = await response.json();
+  console.log("From API: ", data);
+  // return fetch(
+  //   `https://api-anime-rouge.vercel.app/aniwatch/search?keyword=${name}`
+  // )
+  //   .then((response) => response.json())
+  //   .then((data) => {
+  //     return data || [];
+  //   });
+}
+
 export async function fetchStreamList(animeName: string) {
   const response = await fetch(`/api/fetchStreamList?name=${animeName}`);
   const data = await response.json();
